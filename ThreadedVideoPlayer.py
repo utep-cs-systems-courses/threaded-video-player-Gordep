@@ -20,6 +20,9 @@ def extractFrames(fileName, outputBuffer, maxFramesToLoad=9999):
     
     print(f'Reading frame {count} {success}')
     while success and count < maxFramesToLoad:
+        ###aquire semaphore###
+        semaphore.acquire()
+        
         # get a jpg encoded frame
         success, jpgImage = cv2.imencode('.jpg', image)
 
@@ -32,6 +35,9 @@ def extractFrames(fileName, outputBuffer, maxFramesToLoad=9999):
         success,image = vidcap.read()
         print(f'Reading frame {count} {success}')
         count += 1
+        
+        ###release semaphore###
+        semaphore.release()
 
     print('Frame extraction complete')
 
@@ -43,6 +49,9 @@ def displayFrames(inputBuffer):
 
     # go through each frame in the buffer until the buffer is empty
     while not inputBuffer.empty():
+        ###aquire semaphore###
+        semaphore.acquire()
+        
         # get the next frame
         frame = inputBuffer.get()
 
@@ -54,6 +63,9 @@ def displayFrames(inputBuffer):
         if cv2.waitKey(42) and 0xFF == ord("q"):
             break
 
+        ###release semaphore###
+        semaphore.release()
+        
         count += 1
 
     print('Finished displaying all frames')
