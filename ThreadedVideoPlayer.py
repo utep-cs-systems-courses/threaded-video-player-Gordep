@@ -27,14 +27,9 @@ def extractFrames(fileName, outputBuffer, maxFramesToLoad=9999):
     
     print(f'Reading frame {count} {success}')
     while success and count < maxFramesToLoad:
-        ###aquire semaphore###
-        #semaphore.acquire()
         
         # get a jpg encoded frame
         success, jpgImage = cv2.imencode('.jpg', image)
-
-        #encode the frame as base 64 to make debugging easier
-        #jpgAsText = base64.b64encode(jpgImage)
 
         # add the frame to the buffer
         outputBuffer.put(image)
@@ -43,8 +38,6 @@ def extractFrames(fileName, outputBuffer, maxFramesToLoad=9999):
         print(f'Reading frame {count} {success}')
         count += 1
         
-        ###release semaphore###
-        #semaphore.release()
 
     print('Frame extraction complete')
 
@@ -56,8 +49,6 @@ def displayFrames(outputBuffer):
 
     # go through each frame in the buffer until the buffer is empty
     while outputBuffer is not None:
-        ###aquire semaphore###
-        #semaphore.acquire()
         
         # get the next frame
         frame = OutputQueue.get()
@@ -70,9 +61,6 @@ def displayFrames(outputBuffer):
         if cv2.waitKey(42) and 0xFF == ord("q"):
             break
 
-        ###release semaphore###
-        #semaphore.release()
-        
         count = count + 1
 
     print('Finished displaying all frames')
@@ -87,8 +75,6 @@ def ConvertToGrayScale(inputQueue,OutputQueue,maxFramesToLoad=9999):
     
     while inputQueue is not None and count < 72:# can change 72?
         
-        ###aquire semaphore###
-        #semaphore.acquire()
         print(f'Converting frame {count}')
 
         # convert the image to grayscale
@@ -97,8 +83,6 @@ def ConvertToGrayScale(inputQueue,OutputQueue,maxFramesToLoad=9999):
         count = count + 1
         
         OutputQueue.put(grayscaleFrame)
-        ###release semaphore###
-        #semaphore.release()
 
 
 
