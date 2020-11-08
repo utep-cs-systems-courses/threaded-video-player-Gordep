@@ -5,6 +5,13 @@ import os
 import time
 import threading
 import queue
+from ThreadedQueue import ThreadedQueue
+
+
+## Global
+videoName = 'clip.mp4'
+inputQueue = ThreadedQueue()#queue.Queue()
+OutputQueue = ThreadedQueue()#queue.Queue()
 
 
 ## Code snippet from ExtractAndDisplay.py provided by CS4375
@@ -21,13 +28,13 @@ def extractFrames(fileName, outputBuffer, maxFramesToLoad=9999):
     print(f'Reading frame {count} {success}')
     while success and count < maxFramesToLoad:
         ###aquire semaphore###
-        semaphore.acquire()
+        #semaphore.acquire()
         
         # get a jpg encoded frame
         success, jpgImage = cv2.imencode('.jpg', image)
 
         #encode the frame as base 64 to make debugging easier
-        jpgAsText = base64.b64encode(jpgImage)
+        #jpgAsText = base64.b64encode(jpgImage)
 
         # add the frame to the buffer
         outputBuffer.put(image)
@@ -37,23 +44,23 @@ def extractFrames(fileName, outputBuffer, maxFramesToLoad=9999):
         count += 1
         
         ###release semaphore###
-        semaphore.release()
+        #semaphore.release()
 
     print('Frame extraction complete')
 
 
 ## Code snippet from ExtractAndDisplay.py provided by CS4375    
-def displayFrames(inputBuffer):
+def displayFrames(outputBuffer):
     # initialize frame count
     count = 0
 
     # go through each frame in the buffer until the buffer is empty
-    while not inputBuffer.empty():
+    while outputBuffer is not None:
         ###aquire semaphore###
-        semaphore.acquire()
+        #semaphore.acquire()
         
         # get the next frame
-        frame = inputBuffer.get()
+        frame = OutputQueue.get()
 
         print(f'Displaying frame {count}')        
 
@@ -64,10 +71,42 @@ def displayFrames(inputBuffer):
             break
 
         ###release semaphore###
-        semaphore.release()
+        #semaphore.release()
         
-        count += 1
+        count = count + 1
 
     print('Finished displaying all frames')
     # cleanup the windows
     cv2.destroyAllWindows()
+
+## Some code snippet from ConvertToGrayScale.py modified into method
+def ConvertToGrayScale(inputQueue,OutputQueue,maxFramesToLoad=9999):
+    
+    # initialize frame count
+    count = 0
+    
+    while inputQueue is not None and count < 72:# can change 72?
+        
+        ###aquire semaphore###
+        #semaphore.acquire()
+        print(f'Converting frame {count}')
+
+        # convert the image to grayscale
+        grayscaleFrame = cv2.cvtColor(inputQueue.get(), cv2.COLOR_BGR2GRAY)
+        
+        count = count + 1
+        
+        OutputQueue.put(grayscaleFrame)
+        ###release semaphore###
+        #semaphore.release()
+
+
+
+###Start threads
+extractThread = threading.Thread(target = extractFrames, args = (videoName, inputQueue,72))
+convertThread = threading.Thread(target = ConvertToGrayScale, args = (inputQueue, OutputQueue,72))
+displayThread = threading.Thread(target = displayFrames, args = (OutputQueue,))
+
+extractThread.start()
+convertThread.start()
+displayThread.start()
